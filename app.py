@@ -29,36 +29,54 @@ BASE_DIR = Path(__file__).resolve().parent
 OUTPUTS_DIR = BASE_DIR / "outputs"
 
 # ---------------------------------------------------------------------------
-# Palette. restrained blue, steel, and slate, deepened slightly for contrast
+# Palette. "Audit memo" identity: every figure on this dashboard is treated
+# as a claim that needs a citation, so color is used to mark THAT distinction
+# rather than to decorate. Three semantic accents, each with one job:
+#   SLATE (indigo)  -> brand / structural chrome, the dashboard's own voice
+#   DEFINE (green)  -> "here is what this term means" -- glossary material
+#   CAVEAT (amber)  -> "read this before you trust the number above it"
+# NOTE (steel) is a fourth, quieter tone for context that is neither.
 # ---------------------------------------------------------------------------
 
-INK = "#16212F"           # primary text, near-black slate
-SLATE = "#33538A"         # primary accent
-STEEL = "#54749E"         # secondary accent
-STEEL_LIGHT = "#83A0C2"   # tertiary accent
-STEEL_PALE = "#B7C8DC"    # quaternary accent, low-emphasis fills
-MUTED = "#7C8AA0"         # muted gray-blue, captions and low-emphasis labels
-BG = "#F6F7FA"            # page background
-SURFACE = "#ECEFF4"       # subtle panel background
-BORDER = "#DBE1EA"        # hairline borders
-CAVEAT = "#96650F"        # muted amber, reserved for caveat and warning accents
-CAVEAT_BG = "#FAF3E3"
-SIDEBAR_BG = "#101A26"    # sidebar background, darker than INK for contrast
+INK = "#141A22"            # primary text, near-black ink
+SLATE = "#28407A"          # primary accent: deep indigo, the dashboard's voice
+STEEL = "#4B6E93"          # secondary accent, chart series & neutral notes
+STEEL_LIGHT = "#7B9AB8"    # tertiary accent
+STEEL_PALE = "#B9C9D9"     # quaternary accent, low-emphasis fills
+MUTED = "#5E6C7F"          # muted gray-blue, captions and low-emphasis labels
+BG = "#EEF1F3"             # page background, cool paper
+SURFACE = "#E2E8EE"        # subtle panel background
+BORDER = "#C7D1DC"         # hairline borders
+CAVEAT = "#8C5A0E"         # muted amber, reserved for caveat and warning accents
+CAVEAT_BG = "#FAF1DF"
+DEFINE = "#2C6B4F"         # muted green, reserved for glossary/definition material
+DEFINE_BG = "#E6F0EA"
+SIDEBAR_BG = "#0C121C"     # sidebar background, near-black navy
+SIDEBAR_SPINE = "#28407A"  # accent bar down the sidebar's edge, ledger-spine motif
 
-CHART_SEQUENCE = [SLATE, STEEL, STEEL_LIGHT, MUTED, INK, STEEL_PALE, "#64748B"]
+CHART_SEQUENCE = [SLATE, STEEL, STEEL_LIGHT, MUTED, INK, STEEL_PALE, DEFINE]
 
-# Editorial serif for headings, clean technical sans for body and UI chrome.
-# Both stacks lead with a distinctive webfont and fall back to characterful
-# system fonts (never a bare "serif" or "sans-serif" default) so the design
+# Three type roles instead of one sans font doing every job:
+#   display serif  -> headings, carries the "memo" editorial voice
+#   body sans      -> running prose, stays quiet and legible
+#   data mono      -> every number, metric value, and code-like label, so
+#                     figures always read as measured data, not typeset copy
+# Each stack leads with a distinctive webfont and falls back to characterful
+# system fonts (never a bare "serif"/"sans-serif" default) so the design
 # holds up even if the webfonts are blocked by a privacy-hardened browser.
 HEADING_FONT = (
-    "'IBM Plex Sans', -apple-system, 'Segoe UI Variable Display', "
-    "'Segoe UI', system-ui, sans-serif"
+    "'Source Serif 4', 'Iowan Old Style', 'Palatino Linotype', "
+    "Georgia, serif"
 )
 
 BODY_FONT = (
     "'IBM Plex Sans', -apple-system, 'Segoe UI Variable Display', "
     "'Segoe UI', system-ui, sans-serif"
+)
+
+MONO_FONT = (
+    "'IBM Plex Mono', 'SFMono-Regular', ui-monospace, 'Cascadia Mono', "
+    "Consolas, monospace"
 )
 
 st.set_page_config(
@@ -79,7 +97,7 @@ def inject_fonts() -> None:
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link
-          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
           rel="stylesheet">
         """,
         unsafe_allow_html=True,
@@ -102,8 +120,12 @@ def inject_css() -> None:
             --rs-border: {BORDER};
             --rs-caveat: {CAVEAT};
             --rs-caveat-bg: {CAVEAT_BG};
+            --rs-define: {DEFINE};
+            --rs-define-bg: {DEFINE_BG};
+            --rs-sidebar-spine: {SIDEBAR_SPINE};
             --rs-heading-font: {HEADING_FONT};
             --rs-body-font: {BODY_FONT};
+            --rs-mono-font: {MONO_FONT};
         }}
 
         html, body, [class*="css"] {{
@@ -121,48 +143,89 @@ def inject_css() -> None:
         /* ---------------- Sidebar ---------------- */
         section[data-testid="stSidebar"] {{
             background-color: var(--rs-sidebar-bg, {SIDEBAR_BG});
-            border-right: 1px solid #1F2C3D;
+            border-right: 3px solid var(--rs-sidebar-spine);
         }}
         section[data-testid="stSidebar"] > div {{
-            padding-top: 1.6rem;
+            padding-top: 1.5rem;
         }}
         section[data-testid="stSidebar"] * {{
             color: #DCE4F0;
         }}
 
+        /* Masthead: reads like the front matter of a report, not app chrome */
+        .rs-masthead-eyebrow {{
+            font-family: var(--rs-mono-font);
+            font-size: 0.68rem;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+            color: #6B84A8;
+            margin-bottom: 0.35rem;
+        }}
         .rs-wordmark {{
             font-family: var(--rs-heading-font);
-            font-size: 1.55rem;
+            font-size: 1.7rem;
             font-weight: 600;
             color: #FFFFFF;
-            line-height: 1.1;
-            margin-bottom: 0.05rem;
+            line-height: 1.08;
+            margin-bottom: 0.15rem;
         }}
         .rs-wordmark-sub {{
-            font-size: 0.74rem;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            color: #7C8FAE;
-            margin-bottom: 1.4rem;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            color: #8DA0BE;
+            max-width: 15.5rem;
+            margin-bottom: 1.1rem;
+        }}
+        .rs-sidebar-rule {{
+            border: none;
+            border-top: 1px solid #212E42;
+            margin: 1rem 0;
         }}
 
-        /* Nav buttons: flatten Streamlit's default button chrome into a
-           left-aligned nav list, with the active page filled in solid. */
+        /* Nav: table-of-contents styling, left-aligned. Streamlit centers
+           button labels by default via flex containers *inside* the
+           button (not the button element itself), so justify-content on
+           the button alone is not enough -- the inner wrapper and the <p>
+           it renders into both need the override. Section numbers use
+           backtick-code in the label text itself (Streamlit renders that
+           as a real monospace chip; a hand-rolled HTML span won't render
+           at all, since button labels don't support raw HTML). */
         section[data-testid="stSidebar"] div[data-testid="stButton"] {{
             margin-bottom: 0.15rem;
         }}
         section[data-testid="stSidebar"] button {{
             width: 100%;
+            display: flex !important;
             justify-content: flex-start !important;
-            text-align: left;
             font-family: var(--rs-body-font);
-            font-size: 0.93rem;
+            font-size: 0.91rem;
             font-weight: 500;
             letter-spacing: 0.01em;
-            border-radius: 7px;
-            padding: 0.55rem 0.8rem;
+            border-radius: 6px;
+            padding: 0.55rem 0.75rem;
             transition: background-color 0.12s ease, color 0.12s ease;
             box-shadow: none !important;
+        }}
+        section[data-testid="stSidebar"] button > div,
+        section[data-testid="stSidebar"] button [data-testid="stMarkdownContainer"] {{
+            width: 100%;
+            justify-content: flex-start !important;
+            text-align: left !important;
+        }}
+        section[data-testid="stSidebar"] button p {{
+            width: 100%;
+            text-align: left !important;
+        }}
+        section[data-testid="stSidebar"] button code {{
+            font-family: var(--rs-mono-font);
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            background: rgba(255,255,255,0.1);
+            color: #C3D2E8;
+            border-radius: 4px;
+            padding: 0.12rem 0.4rem;
+            margin-right: 0.5rem;
         }}
         section[data-testid="stSidebar"] button:focus {{
             box-shadow: none !important;
@@ -180,7 +243,7 @@ def inject_css() -> None:
         }}
         section[data-testid="stSidebar"] [data-testid="stBaseButton-primary"] {{
             background-color: var(--rs-slate);
-            border: 1px solid rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.16);
             color: #FFFFFF;
             font-weight: 600;
         }}
@@ -188,15 +251,66 @@ def inject_css() -> None:
             background-color: var(--rs-slate);
             color: #FFFFFF;
         }}
+        section[data-testid="stSidebar"] [data-testid="stBaseButton-primary"] code {{
+            background: rgba(255,255,255,0.18);
+            color: #FFFFFF;
+        }}
+
+        /* Active-page description: a single line that updates with the
+           current page, rather than eight stacked paragraphs under every
+           nav item. More informative in practice, since it's the one line
+           you're actually likely to read, and it sidesteps Streamlit's
+           default per-element spacing entirely. */
+        .rs-nav-active-desc {{
+            font-size: 0.78rem;
+            line-height: 1.45;
+            color: #8DA0BE;
+            border-left: 2px solid var(--rs-sidebar-spine);
+            padding: 0.1rem 0 0.1rem 0.65rem;
+            margin: 0.5rem 0 0.2rem 0;
+        }}
 
         section[data-testid="stSidebar"] hr {{
-            border-color: #24334A;
+            border-color: #212E42;
             margin: 1.1rem 0;
         }}
         .rs-sidebar-note {{
             font-size: 0.76rem;
             line-height: 1.5;
             color: #7C8FAE;
+        }}
+
+        /* Reading key: explains what the three callout colors mean, once,
+           so the color system means something instead of decorating. */
+        .rs-legend-title {{
+            font-family: var(--rs-mono-font);
+            font-size: 0.68rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #6B84A8;
+            margin-bottom: 0.5rem;
+        }}
+        .rs-legend-row {{
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }}
+        .rs-legend-swatch {{
+            flex: none;
+            width: 0.55rem;
+            height: 0.55rem;
+            border-radius: 2px;
+            margin-top: 0.28rem;
+        }}
+        .rs-legend-text {{
+            font-size: 0.75rem;
+            line-height: 1.4;
+            color: #96A9C7;
+        }}
+        .rs-legend-text strong {{
+            color: #C9D5E6;
+            font-weight: 600;
         }}
 
         /* ---------------- Headings and body copy ---------------- */
@@ -251,7 +365,8 @@ def inject_css() -> None:
             border-radius: 4px;
             background: var(--rs-slate);
             color: #FFFFFF;
-            font-size: 0.7rem;
+            font-family: var(--rs-mono-font);
+            font-size: 0.72rem;
             letter-spacing: 0.02em;
         }}
 
@@ -273,20 +388,21 @@ def inject_css() -> None:
             border-right: none;
         }}
         .rs-metric-value {{
-            font-family: var(--rs-heading-font);
-            font-size: 1.7rem;
+            font-family: var(--rs-mono-font);
+            font-size: 1.6rem;
             font-weight: 600;
             color: var(--rs-ink);
-            line-height: 1.15;
+            line-height: 1.2;
         }}
         .rs-metric-label {{
             font-size: 0.79rem;
             color: var(--rs-muted);
-            margin-top: 0.25rem;
+            margin-top: 0.3rem;
             line-height: 1.35;
         }}
 
-        /* Caveat callouts: reserved for the amber accent, used sparingly */
+        /* Caveat callouts: reserved for the amber accent, used sparingly,
+           for "read this before you trust the number above it." */
         .rs-callout {{
             border-left: 3px solid var(--rs-caveat);
             background-color: var(--rs-caveat-bg);
@@ -302,6 +418,27 @@ def inject_css() -> None:
             text-transform: uppercase;
             letter-spacing: 0.06em;
             color: var(--rs-caveat);
+            margin-bottom: 0.35rem;
+        }}
+
+        /* Definition callouts: the green accent, reserved for "here is what
+           this term means" -- distinct from a warning and from a neutral
+           note, so a reader can tell at a glance which kind of aside it is. */
+        .rs-define {{
+            border-left: 3px solid var(--rs-define);
+            background-color: var(--rs-define-bg);
+            padding: 0.8rem 1.05rem;
+            margin: 0.9rem 0;
+            font-size: 0.93rem;
+            line-height: 1.55;
+            color: var(--rs-ink);
+        }}
+        .rs-define-title {{
+            font-weight: 600;
+            font-size: 0.79rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--rs-define);
             margin-bottom: 0.35rem;
         }}
 
@@ -322,6 +459,51 @@ def inject_css() -> None:
             letter-spacing: 0.06em;
             color: var(--rs-steel);
             margin-bottom: 0.35rem;
+        }}
+
+        /* Inline glossary terms: a dotted underline that reveals a short
+           definition on hover, so jargon is explained where it appears
+           instead of only in a footnote the reader might skip. Every term
+           also appears in full on the Glossary page for anyone on touch. */
+        .rs-term {{
+            border-bottom: 1.5px dotted var(--rs-define);
+            color: var(--rs-ink);
+            font-weight: 600;
+            cursor: help;
+            position: relative;
+            white-space: nowrap;
+        }}
+        .rs-term:hover, .rs-term:focus {{
+            border-bottom-style: solid;
+        }}
+        .rs-term::after {{
+            content: attr(data-tip);
+            position: absolute;
+            left: 0;
+            bottom: 100%;
+            margin-bottom: 0.4rem;
+            width: max-content;
+            max-width: 19rem;
+            white-space: normal;
+            background: var(--rs-ink);
+            color: #F4F6F9;
+            font-family: var(--rs-body-font);
+            font-weight: 400;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            padding: 0.55rem 0.7rem;
+            border-radius: 5px;
+            box-shadow: 0 6px 18px rgba(20,26,34,0.22);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(3px);
+            transition: opacity 0.12s ease, transform 0.12s ease;
+            z-index: 50;
+        }}
+        .rs-term:hover::after, .rs-term:focus::after {{
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
         }}
 
         .rs-caption {{
@@ -348,6 +530,84 @@ def inject_css() -> None:
         """,
         unsafe_allow_html=True,
     )
+
+
+# ---------------------------------------------------------------------------
+# Glossary
+# ---------------------------------------------------------------------------
+# Short (tooltip-length) definitions, keyed by term. Each entry pairs the
+# plain-language, textbook meaning with a clause on how RavenStack's own SQL
+# actually measures it, since the two frequently diverge and that divergence
+# is the point of this dashboard. The full-length version of each entry
+# lives on the Glossary page (page_glossary); this dict is the compact
+# version used for inline hover chips.
+
+TERMS: dict[str, str] = {
+    "mrr": (
+        "Monthly Recurring Revenue: the revenue a subscription business expects to "
+        "receive each month. RavenStack's version sums every open subscription "
+        "record without removing duplicates per account, so see the Revenue page."
+    ),
+    "arr": (
+        "Annual Recurring Revenue: MRR times twelve. Not computed anywhere in this "
+        "project, because the underlying MRR figure isn't reliable enough to annualize."
+    ),
+    "cohort": (
+        "A group of accounts bucketed by a shared starting point, usually signup "
+        "month, so their behavior over time can be compared month-by-month."
+    ),
+    "churn": (
+        "An account cancelling or leaving. RavenStack treats raw_churn_events as the "
+        "sole source of truth for this, not the churn_flag column on accounts."
+    ),
+    "retention rate": (
+        "The share of a cohort still active N months after their starting point. "
+        "Sensitive to exactly how \"active\" is defined; see the Conversion & "
+        "Retention page for RavenStack's definition."
+    ),
+    "trial conversion": (
+        "The share of trial users who go on to become paying customers. "
+        "RavenStack has no explicit conversion event, so this is built as a proxy."
+    ),
+    "plan tier": (
+        "The pricing package a subscription belongs to: Basic, Pro, or Enterprise "
+        "in this dataset. An account can hold subscription records on more than one "
+        "tier at once."
+    ),
+    "escalation rate": (
+        "The share of support tickets that get escalated past first-line handling, "
+        "generally a signal of ticket severity or of first-contact resolution failing."
+    ),
+    "subscription record": (
+        "One row in the subscriptions table: one plan tier, one price, a start date, "
+        "and usually no end date. RavenStack accounts hold 5 to 14 of these open at "
+        "once, so counting records is not the same as counting accounts."
+    ),
+    "referral channel": (
+        "How an account says it found the product: organic search, paid ads, "
+        "referral, content, or outbound, in this dataset's five categories."
+    ),
+    "net revenue retention": (
+        "A measure of revenue kept and expanded within an existing customer base "
+        "over time, commonly abbreviated NRR. Not computed anywhere in this project."
+    ),
+    "data quality check": (
+        "One of 16 automated checks run against the raw CSVs before any metric is "
+        "built on top of them, documented in full on the Data Quality page."
+    ),
+}
+
+
+def term(key: str, display: str | None = None) -> str:
+    """Return an inline glossary chip: a dotted-underline span that reveals
+    a short definition on hover/focus. Must be placed inside HTML already
+    rendered via st.markdown(..., unsafe_allow_html=True) -- it does not
+    call st.markdown itself, so it can be composed into a larger string."""
+    key_norm = key.lower()
+    tip = TERMS.get(key_norm, "")
+    label = display if display is not None else key
+    tip_escaped = tip.replace('"', "&quot;")
+    return f'<span class="rs-term" tabindex="0" data-tip="{tip_escaped}">{label}</span>'
 
 
 # ---------------------------------------------------------------------------
@@ -384,6 +644,16 @@ def caveat(title: str, body: str) -> None:
 def note(title: str, body: str) -> None:
     st.markdown(
         f'<div class="rs-note"><div class="rs-note-title">{title}</div>{body}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def define(title: str, body: str) -> None:
+    """A definition callout: the green accent, reserved for 'here is what
+    this term means,' distinct from caveat() (amber, a warning) and note()
+    (steel, neutral context)."""
+    st.markdown(
+        f'<div class="rs-define"><div class="rs-define-title">{title}</div>{body}</div>',
         unsafe_allow_html=True,
     )
 
@@ -494,6 +764,13 @@ def page_overview(data: dict) -> None:
         "events. This page explains what is in the dataset and what to know before "
         "reading the numbers on the pages that follow."
     )
+    st.write(
+        "This dashboard exists to answer one question honestly: for each metric a SaaS "
+        "business normally tracks, what does this specific, synthetic dataset actually "
+        "support saying, and where does the usual definition break down? If a term below "
+        "isn't familiar, most metric labels are underlined and explain themselves on "
+        "hover; the Glossary page has the full version of every one of them."
+    )
 
     monthly_acc = data["monthly_new_accounts"]
     repeat_churn = data["repeat_churn"]
@@ -519,15 +796,31 @@ def page_overview(data: dict) -> None:
     st.markdown("### At a glance")
     row1 = [
         (f"{total_accounts:,}", "Total accounts, January 2023 through December 2024"),
-        (f"{total_churn_events:,} events", f"Churn events, from {unique_churned:,} unique accounts"),
-        (f"{conv_rate:.1f}%", "Trial to paid conversion, subscription-level proxy"),
+        (f"{total_churn_events:,} events", f"{term('churn', 'Churn')} events, from {unique_churned:,} unique accounts"),
+        (f"{conv_rate:.1f}%", f"{term('trial conversion', 'Trial to paid conversion')}, subscription-level proxy"),
     ]
     if latest_mrr_row is not None:
-        row1.append((f"${latest_mrr_row['aggregate_subscription_mrr']:,.0f}", "Aggregate subscription-record MRR, December 2024"))
+        row1.append((
+            f"${latest_mrr_row['aggregate_subscription_mrr']:,.0f}",
+            f"Aggregate subscription-record {term('mrr', 'MRR')}, December 2024",
+        ))
     metric_row(row1)
     caption(
         "Every figure above is defined precisely on its own page, together with the caveat "
-        "that applies to it. None of these numbers are meant to be quoted on their own."
+        "that applies to it. None of these numbers are meant to be quoted on their own. "
+        "Hover an underlined term for a quick definition, or see the Glossary page for the "
+        "full version."
+    )
+
+    define(
+        "New to SaaS metrics? Start here",
+        "<strong>MRR</strong> is monthly recurring revenue, <strong>churn</strong> is a customer "
+        "leaving, and <strong>retention</strong> is the share of customers still active after some "
+        "time. Those textbook definitions are the ones most business dashboards use. This dashboard "
+        "computes the same-named metrics against RavenStack's data, but several of them turn out to "
+        "measure something subtly different once you look at how the underlying tables are actually "
+        "shaped, see the caveat directly below and the full <strong>Glossary</strong> page for "
+        "specifics.",
     )
 
     caveat(
@@ -547,22 +840,24 @@ def page_overview(data: dict) -> None:
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("**Acquisition and revenue**")
-        st.write(
-            "Account acquisition is spread across five referral channels with no single channel "
-            "dominating volume. Aggregate subscription-record MRR grows steadily across the "
-            "observation window. That growth is driven by the accumulation of open subscription "
-            "records over time, not by a conventional net-new-revenue signal. The Revenue page "
-            "explains why."
+        st.markdown(
+            f"Account acquisition is spread across five {term('referral channel', 'referral channels')} "
+            f"with no single channel dominating volume. Aggregate subscription-record "
+            f"{term('mrr', 'MRR')} grows steadily across the observation window. That growth is driven "
+            "by the accumulation of open subscription records over time, not by a conventional "
+            "net-new-revenue signal. The Revenue page explains why.",
+            unsafe_allow_html=True,
         )
     with col2:
         st.markdown("**Retention, churn, and support**")
         ret_text = f"{ret_month6:.1f}%" if ret_month6 is not None else "n/a"
-        st.write(
-            f"The observed six-month account subscription retention rate is high, at {ret_text}, "
-            "but this reflects a structural ceiling effect rather than genuinely low attrition. "
-            "The Conversion & Retention page walks through why. Support activity, meanwhile, shows "
-            "no meaningful difference between churned and non-churned accounts when compared across "
-            "each account's whole history."
+        st.markdown(
+            f"The observed six-month account subscription {term('retention rate', 'retention rate')} "
+            f"is high, at {ret_text}, but this reflects a structural ceiling effect rather than "
+            "genuinely low attrition. The Conversion & Retention page walks through why. Support "
+            f"activity, meanwhile, shows no meaningful difference between {term('churn', 'churned')} "
+            "and non-churned accounts when compared across each account's whole history.",
+            unsafe_allow_html=True,
         )
 
     divider()
@@ -620,10 +915,11 @@ def page_acquisition(data: dict) -> None:
         missing(FILES["monthly_new_accounts"])
 
     divider()
-    st.write(
-        "The next four charts break the same 500 accounts down by referral source, plan tier, "
-        "industry, and country, so you can see how acquisition is distributed along each dimension "
-        "separately."
+    st.markdown(
+        "The next four charts break the same 500 accounts down by "
+        f"{term('referral channel', 'referral source')}, {term('plan tier', 'plan tier')}, industry, "
+        "and country, so you can see how acquisition is distributed along each dimension separately.",
+        unsafe_allow_html=True,
     )
     col1, col2 = st.columns(2)
 
@@ -758,10 +1054,10 @@ def page_revenue(data: dict) -> None:
         "given month. It does <strong>not</strong> deduplicate by account. Because accounts routinely "
         "hold between 5 and 14 concurrently open subscription records, this figure counts revenue "
         "two, three, or more times over for any account with multiple open records in the same month. "
-        "Throughout this project it is called <strong>Aggregate Subscription-Record MRR</strong> and "
-        "is never referred to as \"Company MRR,\" \"Account MRR,\" or \"ARR.\" No ARR, no net revenue "
-        "retention, no expansion revenue, and no customer lifetime value figures are computed "
-        "anywhere in this project.",
+        f"Throughout this project it is called <strong>Aggregate Subscription-Record MRR</strong> and "
+        f"is never referred to as \"Company MRR,\" \"Account MRR,\" or {term('arr', 'ARR')}. No ARR, no "
+        f"{term('net revenue retention', 'net revenue retention')}, no expansion revenue, and no "
+        "customer lifetime value figures are computed anywhere in this project.",
     )
 
     mrr = data["monthly_mrr"]
@@ -769,7 +1065,7 @@ def page_revenue(data: dict) -> None:
         latest = mrr.sort_values("month_start").iloc[-1]
         metric_row(
             [
-                (f"${latest['aggregate_subscription_mrr']:,.0f}", f"Aggregate Subscription-Record MRR, {latest['month_label']}"),
+                (f"${latest['aggregate_subscription_mrr']:,.0f}", f"Aggregate {term('subscription record', 'Subscription-Record')} {term('mrr', 'MRR')}, {latest['month_label']}"),
                 (f"{int(latest['active_subscription_records']):,}", "Open subscription records counted that month"),
             ]
         )
@@ -864,7 +1160,7 @@ def page_conversion_retention(data: dict) -> None:
         row = conv.iloc[0]
         metric_row(
             [
-                (f"{row['subscription_level_conversion_rate_pct']:.1f}%", "Subscription-level proxy conversion rate"),
+                (f"{row['subscription_level_conversion_rate_pct']:.1f}%", f"Subscription-level proxy {term('trial conversion', 'conversion rate')}"),
                 (f"{int(row['total_trial_subscription_records']):,}", "Total trial subscription records"),
                 (f"{int(row['trial_records_with_later_paid_record']):,}", "Records with a later paid record on the same account"),
             ]
@@ -929,8 +1225,8 @@ def page_conversion_retention(data: dict) -> None:
         m6 = retention.loc[retention["months_since_signup"] == 6, "retention_rate_pct_eligible_cohorts_only"].iloc[0]
         metric_row(
             [
-                (f"{m0:.1f}%", "Observed retention at month 0"),
-                (f"{m6:.1f}%", "Observed retention at month 6"),
+                (f"{m0:.1f}%", f"Observed {term('retention rate', 'retention')} at month 0"),
+                (f"{m6:.1f}%", f"Observed {term('retention rate', 'retention')} at month 6"),
             ]
         )
 
@@ -999,8 +1295,10 @@ def page_engagement(data: dict) -> None:
         "Only about 22% of feature-usage rows fall inside their linked subscription's active date "
         "window, a finding documented as data quality check 11. Because of that, feature engagement "
         "here is analyzed at the account level across an account's whole history, using the "
-        "subscription foreign key purely as a technical bridge to reach <code>account_id</code>, "
-        "rather than to scope usage to a specific subscription period.",
+        f"{term('subscription record', 'subscription')} foreign key purely as a technical bridge to "
+        "reach <code>account_id</code>, rather than to scope usage to a specific subscription period. "
+        f"\"{term('churn', 'Churned')}\" below follows the same account-level definition used "
+        "throughout this dashboard.",
     )
 
     top_features = data["top_features"]
@@ -1102,7 +1400,7 @@ def page_churn_support(data: dict) -> None:
         r = repeat.iloc[0]
         metric_row(
             [
-                (f"{int(r['total_churn_events']):,}", "Total churn events"),
+                (f"{int(r['total_churn_events']):,}", f"Total {term('churn', 'churn')} events"),
                 (f"{int(r['unique_churned_accounts']):,}", "Unique churned accounts"),
                 (f"{int(r['repeat_churn_accounts']):,}", "Accounts with 2 or more churn events"),
                 (f"{int(r['reactivation_events']):,}", "Explicit reactivation events"),
@@ -1406,17 +1704,169 @@ def page_data_quality(data: dict) -> None:
 
 
 # ===========================================================================
+# PAGE 08. GLOSSARY
+# ===========================================================================
+
+
+def page_glossary(data: dict) -> None:
+    kicker("08", "Glossary")
+    st.title("Glossary")
+    lede(
+        "The pages before this one define each metric inline, right next to the number, "
+        "because that is where a caveat is most likely to actually get read. This page "
+        "collects those definitions in one place instead, for anyone who wants the "
+        "vocabulary up front, or who is new to SaaS metrics generally. Every entry has two "
+        "parts: what the term ordinarily means, and how RavenStack's own SQL measures it, "
+        "which is not always the same thing."
+    )
+
+    note(
+        "Why this project keeps saying \"that's not quite what it sounds like\"",
+        "RavenStack is a synthetic dataset with some unusual structural properties, "
+        "documented in full on the Data Quality page: accounts hold many overlapping "
+        "subscription records, most records never close, and the churn flag on the "
+        "accounts table disagrees with the churn events log. A metric computed correctly "
+        "against this data can still look strange next to the textbook definition of that "
+        "metric, simply because the textbook definition assumes a data shape this dataset "
+        "doesn't quite have. Naming that gap, rather than quietly smoothing it over, is the "
+        "whole premise of this dashboard.",
+    )
+
+    divider()
+    st.markdown("### Revenue and plans")
+    with st.expander("MRR — Monthly Recurring Revenue", expanded=True):
+        st.markdown(
+            "**Ordinarily:** the revenue a subscription business expects to collect in a "
+            "typical month, usually counted once per paying customer.\n\n"
+            "**In RavenStack:** summed across every subscription record open in a given "
+            "month, with no deduplication by account. Because accounts here routinely hold "
+            "5 to 14 concurrently open records, the same account's revenue can be counted "
+            "several times over in the same month. This project calls the result "
+            "**Aggregate Subscription-Record MRR** specifically so it is never mistaken for "
+            "the standard, one-per-customer figure. See the Revenue page."
+        )
+    with st.expander("ARR — Annual Recurring Revenue"):
+        st.markdown(
+            "**Ordinarily:** MRR multiplied by twelve, used as a longer-horizon revenue "
+            "benchmark.\n\n"
+            "**In RavenStack:** not computed anywhere in this project. Annualizing a figure "
+            "that already double-counts revenue within a single month would only compound "
+            "the distortion, so this project stops at the monthly figure and explains its "
+            "limits instead."
+        )
+    with st.expander("Plan tier"):
+        st.markdown(
+            "**Ordinarily:** the pricing package a customer is subscribed to.\n\n"
+            "**In RavenStack:** Basic, Pro, or Enterprise, tracked at the subscription-record "
+            "level rather than the account level. One account can hold open records on more "
+            "than one tier at the same time, which is part of why per-account revenue "
+            "figures aren't reported here."
+        )
+    with st.expander("Net revenue retention (NRR)"):
+        st.markdown(
+            "**Ordinarily:** the share of revenue kept and expanded within an existing "
+            "customer base over a period, accounting for upgrades, downgrades, and churn.\n\n"
+            "**In RavenStack:** not computed. It depends on a reliable per-account revenue "
+            "figure over time, which the double-counted MRR metric above cannot supply."
+        )
+
+    st.markdown("### Conversion and retention")
+    with st.expander("Trial conversion", expanded=True):
+        st.markdown(
+            "**Ordinarily:** the share of trial signups who become paying customers, "
+            "usually tracked as an explicit event in the product.\n\n"
+            "**In RavenStack:** there is no explicit conversion event in the data, so this "
+            "is built as a proxy: an account's trial subscription record counts as "
+            "\"converted\" if that same account also holds a paid record starting on or "
+            "after the trial's start date. Because accounts can hold many unrelated "
+            "subscription records over time, this proxy can register a conversion even when "
+            "the trial didn't actually cause the paid subscription. See Conversion & "
+            "Retention."
+        )
+    with st.expander("Cohort"):
+        st.markdown(
+            "**Ordinarily and in RavenStack, the same:** a group of accounts bucketed by a "
+            "shared starting point, here the signup month, so their behavior can be lined up "
+            "and compared month-by-month regardless of when each account actually signed up."
+        )
+    with st.expander("Retention rate"):
+        st.markdown(
+            "**Ordinarily:** the share of a cohort still active N months after joining, "
+            "typically declining over time as customers leave.\n\n"
+            "**In RavenStack:** an account counts as \"active\" in a given month if it holds "
+            "at least one open subscription record then. Since about 90% of records never "
+            "receive an end date, this curve rises toward ~99% rather than declining, "
+            "which reflects the definition of \"active\" more than it reflects genuine "
+            "customer loyalty. Read the full explanation on the Conversion & Retention page "
+            "before quoting this figure."
+        )
+
+    st.markdown("### Churn and support")
+    with st.expander("Churn", expanded=True):
+        st.markdown(
+            "**Ordinarily:** a customer cancelling or leaving a subscription business.\n\n"
+            "**In RavenStack:** measured exclusively from the `raw_churn_events` table, "
+            "which logs 600 discrete churn events across 352 unique accounts, some of them "
+            "more than once. The `churn_flag` column on the accounts table exists but "
+            "disagrees with the events log substantially, so it is not used anywhere in this "
+            "project's downstream metrics."
+        )
+    with st.expander("Escalation rate"):
+        st.markdown(
+            "**Ordinarily and in RavenStack, the same:** the share of support tickets that "
+            "get escalated past first-line handling. Generally read as a signal of ticket "
+            "severity, or of first-contact resolution failing to hold. This project compares "
+            "it between churned and non-churned accounts on the Churn & Support page and "
+            "finds no material difference between the two groups."
+        )
+
+    st.markdown("### Acquisition, engagement, and data")
+    with st.expander("Referral channel"):
+        st.markdown(
+            "**Ordinarily and in RavenStack, the same:** how an account reports finding the "
+            "product. Five categories appear in this dataset: organic search, paid "
+            "advertising, referral, content marketing, and outbound sales."
+        )
+    with st.expander("Subscription record"):
+        st.markdown(
+            "**Specific to this project's data model:** one row in the subscriptions table, "
+            "with one plan tier, one price, a start date, and usually no end date. This is "
+            "the unit almost every metric on this dashboard is actually computed against, "
+            "which is why the distinction between \"a record\" and \"an account\" matters so "
+            "much throughout the project."
+        )
+    with st.expander("Data quality check"):
+        st.markdown(
+            "**Specific to this project:** one of 16 automated checks run against the raw "
+            "CSVs before any downstream metric is built, covering things like NULL rates, "
+            "duplicate keys, and the churn-flag disagreement mentioned above. Full results "
+            "are on the Data Quality page."
+        )
+
+    divider()
+    caption(
+        "Missing a term? Every metric on this dashboard is also defined, with full SQL, in "
+        "the corresponding file under <code>sql/</code>, and documented further in "
+        "<code>docs/</code>."
+    )
+
+
+# ===========================================================================
 # Navigation
 # ===========================================================================
 
-NAV_ITEMS: list[tuple[str, str]] = [
-    ("01", "Overview"),
-    ("02", "Acquisition"),
-    ("03", "Revenue"),
-    ("04", "Conversion & Retention"),
-    ("05", "Engagement"),
-    ("06", "Churn & Support"),
-    ("07", "Data Quality"),
+# Each entry: (section number, label, one-line description of what the page
+# actually answers). The description renders under the nav button so the
+# sidebar functions as a real table of contents, not just a list of labels.
+NAV_ITEMS: list[tuple[str, str, str]] = [
+    ("01", "Overview", "What's in the dataset, and what to read first."),
+    ("02", "Acquisition", "Where the 500 accounts came from, by channel and tier."),
+    ("03", "Revenue", "Aggregate Subscription-Record MRR, and why that name."),
+    ("04", "Conversion & Retention", "Trial-to-paid proxy and the retention curve."),
+    ("05", "Engagement", "Feature usage volume, churned vs. non-churned."),
+    ("06", "Churn & Support", "Events vs. accounts, reasons, and support activity."),
+    ("07", "Data Quality", "16 checks behind almost every number here."),
+    ("08", "Glossary", "Plain-language definitions for every metric used."),
 ]
 
 PAGE_FUNCTIONS = {
@@ -1427,6 +1877,7 @@ PAGE_FUNCTIONS = {
     "Engagement": page_engagement,
     "Churn & Support": page_churn_support,
     "Data Quality": page_data_quality,
+    "Glossary": page_glossary,
 }
 
 
@@ -1449,20 +1900,44 @@ def render_sidebar() -> str:
         st.session_state.rs_page = "Overview"
 
     with st.sidebar:
-        st.markdown('<div class="rs-wordmark">RavenStack</div>', unsafe_allow_html=True)
-        st.markdown('<div class="rs-wordmark-sub">SaaS Analytics Workspace</div>', unsafe_allow_html=True)
 
-        for num, label in NAV_ITEMS:
+        st.markdown('<div class="rs-wordmark">RavenStack</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="rs-wordmark-sub">A SQL-first audit of a synthetic SaaS dataset. '
+            "Every figure below is sourced to the query that produced it.</div>",
+            unsafe_allow_html=True,
+        )
+
+        for num, label, desc in NAV_ITEMS:
             is_active = st.session_state.rs_page == label
             if st.button(
-                f"{num}   {label}",
+                f"`{num}`  {label}",
                 key=f"nav_{label}",
                 type="primary" if is_active else "secondary",
                 width="stretch",
             ):
                 st.session_state.rs_page = label
 
-        st.markdown("<hr />", unsafe_allow_html=True)
+        active_desc = next(desc for _, label, desc in NAV_ITEMS if label == st.session_state.rs_page)
+        st.markdown(f'<div class="rs-nav-active-desc">{active_desc}</div>', unsafe_allow_html=True)
+
+        st.markdown('<hr class="rs-sidebar-rule" />', unsafe_allow_html=True)
+
+        st.markdown('<div class="rs-legend-title">Reading key</div>', unsafe_allow_html=True)
+        legend_items = [
+            (DEFINE, "Definition", "what a term means, textbook vs. how RavenStack measures it."),
+            (STEEL_PALE, "Note", "context worth knowing that isn't a warning."),
+            (CAVEAT, "Caveat", "read this before you trust the number beside it."),
+        ]
+        legend_html = "".join(
+            f'<div class="rs-legend-row"><span class="rs-legend-swatch" '
+            f'style="background:{color}"></span><span class="rs-legend-text">'
+            f"<strong>{name}.</strong> {desc}</span></div>"
+            for color, name, desc in legend_items
+        )
+        st.markdown(legend_html, unsafe_allow_html=True)
+
+        st.markdown('<hr class="rs-sidebar-rule" />', unsafe_allow_html=True)
         st.markdown(
             '<div class="rs-sidebar-note">Synthetic dataset. Please read each page\'s '
             "caveats before quoting a number from it.</div>",
