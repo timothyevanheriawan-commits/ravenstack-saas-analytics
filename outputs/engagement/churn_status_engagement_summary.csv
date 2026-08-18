@@ -1,0 +1,3 @@
+is_churned_account,accounts,usage_events,usage_events_per_account,usage_count_per_account,errors_per_account
+False,148,7310,49.4,495.4,27.79
+True,352,17690,50.3,503.4,28.39

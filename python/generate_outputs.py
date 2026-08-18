@@ -247,16 +247,22 @@ def run_conversion(tables: dict) -> None:
 
     # Q1: Subscription-level conversion proxy, overall (mirrors 05 Q1)
     # For each trial record, does the same account have a paid record with
-    # start_date >= trial start_date?
-    paid_min = (
+    # start_date >= trial start_date? This mirrors the SQL's correlated
+    # EXISTS (WHERE p.start_date >= t.start_date), which is a "does at
+    # least one qualifying paid record exist" check -- not "is the
+    # account's *earliest* paid record after the trial." The correct
+    # pandas equivalent is to compare against the account's LATEST paid
+    # start_date: if even the latest paid record doesn't clear the trial's
+    # start_date, none do; if it does, EXISTS is satisfied.
+    paid_max = (
         paid_subs.groupby("account_id")["start_date"]
-        .min()
-        .rename("first_paid_start")
+        .max()
+        .rename("latest_paid_start")
         .reset_index()
     )
-    trial_merged = trial_subs.merge(paid_min, on="account_id", how="left")
+    trial_merged = trial_subs.merge(paid_max, on="account_id", how="left")
     trial_merged["has_later_paid"] = (
-        trial_merged["first_paid_start"] >= trial_merged["start_date"]
+        trial_merged["latest_paid_start"] >= trial_merged["start_date"]
     )
 
     total_trial = trial_subs["subscription_id"].nunique()
@@ -519,6 +525,46 @@ def run_engagement(tables: dict) -> None:
     ).astype(int)
     write(q1, "engagement", "top_features_by_usage.csv")
 
+    # Q5: Overall engagement summary -- churned vs non-churned accounts
+    # (mirrors 08 Q5). Uses ALL observed usage history per account, joined
+    # to account_id via the subscription FK bridge only (not scoped to
+    # subscription periods -- see data quality check 11).
+    churned_ids = set(tables["churn_events"]["account_id"].unique())
+    fu_status = fu_acc.copy()
+    fu_status["is_churned_account"] = fu_status["account_id"].isin(churned_ids)
+
+    q5 = (
+        fu_status.groupby("is_churned_account")
+        .agg(
+            accounts=("account_id", "nunique"),
+            usage_events=("usage_id", "count"),
+            usage_count_sum=("usage_count", "sum"),
+            error_count_sum=("error_count", "sum"),
+        )
+        .reset_index()
+        .sort_values("is_churned_account")
+    )
+    q5["usage_events_per_account"] = (
+        q5["usage_events"] / q5["accounts"]
+    ).round(1)
+    q5["usage_count_per_account"] = (
+        q5["usage_count_sum"] / q5["accounts"]
+    ).round(1)
+    q5["errors_per_account"] = (
+        q5["error_count_sum"] / q5["accounts"]
+    ).round(2)
+    q5 = q5[
+        [
+            "is_churned_account",
+            "accounts",
+            "usage_events",
+            "usage_events_per_account",
+            "usage_count_per_account",
+            "errors_per_account",
+        ]
+    ]
+    write(q5, "engagement", "churn_status_engagement_summary.csv")
+
 
 # ---------------------------------------------------------------------------
 # Validation spot-checks
@@ -578,7 +624,7 @@ def main() -> None:
     print("\n10_support_vs_churn.sql")
     run_support(tables)
 
-    print("\n08_feature_engagement.sql (Q1)")
+    print("\n08_feature_engagement.sql (Q1, Q5)")
     run_engagement(tables)
 
     print("\nValidation checks...")

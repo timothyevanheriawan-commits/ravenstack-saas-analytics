@@ -1,4 +1,4 @@
 plan_tier,trial_records,trial_records_with_later_paid_record,conversion_rate_pct
-Enterprise,273,38,13.9
-Pro,259,36,13.9
-Basic,246,34,13.8
+Pro,259,234,90.3
+Enterprise,273,240,87.9
+Basic,246,216,87.8
