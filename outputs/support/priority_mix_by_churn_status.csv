@@ -1,0 +1,3 @@
+is_churned_account,low_priority_tickets,medium_priority_tickets,high_priority_tickets,urgent_priority_tickets,total_tickets,pct_high_or_urgent
+False,148,145,141,171,605,51.6
+True,337,346,369,343,1395,51.0

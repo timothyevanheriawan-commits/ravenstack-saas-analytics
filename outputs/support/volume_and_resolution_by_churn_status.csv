@@ -1,0 +1,3 @@
+is_churned_account,accounts,tickets,tickets_per_account,avg_resolution_time_hours,avg_first_response_minutes,escalated_tickets,escalation_rate_pct
+False,145,605,4.17,36.13,88.2,24,4.0
+True,347,1395,4.02,35.74,88.6,71,5.1

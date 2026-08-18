@@ -1,0 +1,21 @@
+                         metric_name                          |   metric_value   |       comparison_value       |                                                                                                                                             context                                                                                                                                             
+--------------------------------------------------------------+------------------+------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Total accounts (2023-01 to 2024-12)                          | 500              |                              | All accounts in the observation window
+ Top acquisition channel                                      | organic          | 114 accounts                 | Highest account count by referral_source
+ Latest month Aggregate Subscription-Record MRR (2024-12)     | $10,734,251      |                              | Sum of mrr_amount across all subscription records open in Dec 2024 -- NOT customer MRR (accounts hold many concurrent open records)
+ Trial subscription records                                   | 778              | 690 with a later paid record | Subscription-level, not account-level (see 05_trial_conversion.sql for why account-level conversion is a flat 100%)
+ Trial->paid conversion rate (subscription-level proxy)       | 88.7%            |                              | Proxy metric: trial record + later paid record on same account; not a certified causal funnel
+ 6-month observed account subscription retention (pooled)     | 98.9%            |                              | Share of eligible-cohort accounts with an open subscription record 6 months after signup -- this metric is structurally close to a ceiling (see 06_cohort_retention.sql) since ~90% of subscription records never receive an end_date, so it should not be read as a sensitive attrition signal
+ Most-used feature (by total usage_count)                     | feature_32       | 6686 total usage_count       | Account/global-level usage; not scoped to subscription periods (only ~22% of usage rows fall in-window)
+ Total churn events                                           | 600              | 352 unique churned accounts  | raw_churn_events is the churn source of truth, not accounts.churn_flag
+ Churned-account rate                                         | 70.4%            |                              | Unique churned accounts / total accounts (not an events-based rate)
+ Repeat-churn accounts                                        | 175              | 61 reactivation events       | Accounts with 2+ churn events -- churn/reactivation cycles exist in this dataset
+ Support ticket satisfaction score missingness                | 41.3%            | Range observed: 3.0-5.0 only | Substantial missingness + truncated range indicates selection bias; never treated as representative
+ Support activity: churned vs non-churned avg resolution time | 35.74h (churned) | 36.13h (non-churned)         | Observational association only -- no causal claim; difference is negligible in this dataset
+(12 rows)
+
+ accounts_check | churn_events_check | unique_churned_accounts_check 
+----------------+--------------------+-------------------------------
+ t              | t                  | t
+(1 row)
+

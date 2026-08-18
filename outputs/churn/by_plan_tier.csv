@@ -1,0 +1,4 @@
+plan_tier,churn_events,unique_churned_accounts,accounts_on_this_plan,pct_of_plan_accounts_with_churn_event
+Pro,225,129,178,72.5
+Enterprise,195,108,154,70.1
+Basic,180,115,168,68.5

@@ -1,0 +1,7 @@
+reason_code,churn_events,unique_accounts,pct_of_all_churn_events,reason_rank
+features,114,104,19.0,1
+budget,104,94,17.3,2
+support,104,95,17.3,2
+unknown,95,86,15.8,4
+competitor,92,79,15.3,5
+pricing,91,86,15.2,6
