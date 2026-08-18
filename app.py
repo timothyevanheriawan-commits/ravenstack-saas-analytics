@@ -61,12 +61,14 @@ CHART_SEQUENCE = [SLATE, STEEL, STEEL_LIGHT, MUTED, INK, STEEL_PALE, DEFINE]
 #   body sans      -> running prose, stays quiet and legible
 #   data mono      -> every number, metric value, and code-like label, so
 #                     figures always read as measured data, not typeset copy
-# Each stack leads with a distinctive webfont and falls back to characterful
-# system fonts (never a bare "serif"/"sans-serif" default) so the design
-# holds up even if the webfonts are blocked by a privacy-hardened browser.
+# All three come from the IBM Plex superfamily (Serif / Sans / Mono) so the
+# three roles read as one coherent type system rather than three unrelated
+# typefaces stitched together. Each stack falls back to characterful system
+# fonts (never a bare "serif"/"sans-serif" default) so the design holds up
+# even if the webfonts are blocked by a privacy-hardened browser.
 HEADING_FONT = (
-    "'Source Serif 4', 'Iowan Old Style', 'Palatino Linotype', "
-    "Georgia, serif"
+    "'IBM Plex Serif', 'Iowan Old Style', 'Palatino Linotype', "
+    "Palatino, Georgia, serif"
 )
 
 BODY_FONT = (
@@ -97,7 +99,7 @@ def inject_fonts() -> None:
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link
-          href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
           rel="stylesheet">
         """,
         unsafe_allow_html=True,
@@ -401,6 +403,164 @@ def inject_css() -> None:
             line-height: 1.35;
         }}
 
+        /* Pull-quote: the dashboard's single most important sentence, set
+           in the heading serif at a larger size so it reads as a claim to
+           be defended, not a caption to skim past. */
+        .rs-pullquote {{
+            font-family: var(--rs-heading-font);
+            font-size: 1.3rem;
+            font-weight: 600;
+            line-height: 1.45;
+            color: var(--rs-ink);
+            border-left: 3px solid var(--rs-slate);
+            padding: 0.2rem 0 0.2rem 1.1rem;
+            margin: 1.1rem 0 1.3rem 0;
+            max-width: 46rem;
+        }}
+
+        /* Three-up finding grid: the "dataset is unusual" visual summary on
+           Overview. Amber-topped, since these are framed as facts to keep
+           in mind rather than decorative stats. */
+        .rs-finding-grid {{
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.2rem;
+            margin: 1rem 0 1.2rem 0;
+        }}
+        .rs-finding {{
+            border-top: 3px solid var(--rs-caveat);
+            padding-top: 0.7rem;
+        }}
+        .rs-finding-stat {{
+            font-family: var(--rs-mono-font);
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--rs-ink);
+            line-height: 1.2;
+            margin-bottom: 0.35rem;
+        }}
+        .rs-finding-title {{
+            font-family: var(--rs-body-font);
+            font-size: 0.86rem;
+            font-weight: 600;
+            color: var(--rs-ink);
+            margin-bottom: 0.35rem;
+        }}
+        .rs-finding-body {{
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: var(--rs-muted);
+        }}
+        @media (max-width: 900px) {{
+            .rs-finding-grid {{ grid-template-columns: 1fr; }}
+        }}
+
+        /* Headline stat: a large number with its interpretive qualifier
+           immediately beneath it -- used where a figure could otherwise be
+           mistaken for an unqualified, triumphant KPI (e.g. retention). */
+        .rs-headline {{
+            margin: 0.6rem 0 0.2rem 0;
+        }}
+        .rs-headline-value {{
+            font-family: var(--rs-heading-font);
+            font-size: 2.6rem;
+            font-weight: 600;
+            color: var(--rs-ink);
+            line-height: 1.05;
+        }}
+        .rs-headline-qualifier {{
+            font-family: var(--rs-body-font);
+            font-size: 0.92rem;
+            font-style: italic;
+            color: var(--rs-steel);
+            margin-top: 0.3rem;
+            max-width: 40rem;
+        }}
+
+        /* Proxy-vs-degenerate comparison, used on Conversion & Retention so
+           the subscription-level proxy and the account-level figure are
+           never read as two versions of the same KPI. */
+        .rs-compare-grid {{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            border: 1px solid var(--rs-border);
+            margin: 0.9rem 0 1rem 0;
+        }}
+        .rs-compare-cell {{
+            padding: 1rem 1.2rem;
+        }}
+        .rs-compare-cell + .rs-compare-cell {{
+            border-left: 1px solid var(--rs-border);
+        }}
+        .rs-compare-eyebrow {{
+            font-family: var(--rs-mono-font);
+            font-size: 0.68rem;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            margin-bottom: 0.4rem;
+        }}
+        .rs-compare-value {{
+            font-family: var(--rs-heading-font);
+            font-size: 2.1rem;
+            font-weight: 600;
+            line-height: 1.1;
+        }}
+        .rs-compare-note {{
+            font-size: 0.83rem;
+            line-height: 1.5;
+            color: var(--rs-muted);
+            margin-top: 0.45rem;
+        }}
+        .rs-compare-cell.is-proxy .rs-compare-eyebrow {{ color: var(--rs-steel); }}
+        .rs-compare-cell.is-proxy .rs-compare-value {{ color: var(--rs-ink); }}
+        .rs-compare-cell.is-degenerate {{
+            background: var(--rs-surface);
+        }}
+        .rs-compare-cell.is-degenerate .rs-compare-eyebrow {{ color: var(--rs-caveat); }}
+        .rs-compare-cell.is-degenerate .rs-compare-value {{
+            color: var(--rs-muted);
+            text-decoration: line-through;
+            text-decoration-color: var(--rs-caveat);
+            text-decoration-thickness: 2px;
+        }}
+        @media (max-width: 900px) {{
+            .rs-compare-grid {{ grid-template-columns: 1fr; }}
+            .rs-compare-cell + .rs-compare-cell {{ border-left: none; border-top: 1px solid var(--rs-border); }}
+        }}
+
+        /* Route-in buttons on Overview's "Continue the investigation"
+           section: plain, bordered, left-aligned -- a list of next steps
+           rather than a row of call-to-action buttons. st.container(key=...)
+           (Streamlit >= 1.32) adds the .st-key-route_nav class used to
+           scope this without touching any other button in the app. */
+        .st-key-route_nav button {{
+            width: 100%;
+            white-space: normal;
+            text-align: left !important;
+            justify-content: flex-start !important;
+            background: transparent;
+            border: 1px solid var(--rs-border);
+            border-radius: 4px;
+            color: var(--rs-ink);
+            font-family: var(--rs-body-font);
+            font-size: 0.85rem;
+            font-weight: 500;
+            line-height: 1.4;
+            padding: 0.65rem 0.85rem;
+            height: auto;
+            box-shadow: none !important;
+        }}
+        .st-key-route_nav button:hover {{
+            border-color: var(--rs-slate);
+            color: var(--rs-slate);
+            background: var(--rs-surface);
+        }}
+        .st-key-route_nav button code {{
+            font-family: var(--rs-mono-font);
+            font-size: 0.72rem;
+        }}
+
         /* Caveat callouts: reserved for the amber accent, used sparingly,
            for "read this before you trust the number above it." */
         .rs-callout {{
@@ -668,6 +828,61 @@ def metric_row(items: list[tuple[str, str]]) -> None:
     st.markdown(f'<div class="rs-metric-row">{cells}</div>', unsafe_allow_html=True)
 
 
+def pullquote(text: str) -> None:
+    """The dashboard's central claim, set in the heading serif. Reserved
+    for the one or two sentences per page that most need to be read."""
+    st.markdown(f'<div class="rs-pullquote">{text}</div>', unsafe_allow_html=True)
+
+
+def finding_grid(items: list[tuple[str, str, str]]) -> None:
+    """items: list of (stat, title, body) tuples, rendered as a three-up
+    grid. Used once, on Overview, as the visual explanation of the three
+    most consequential data-quality issues in the dataset."""
+    cells = "".join(
+        f'<div class="rs-finding"><div class="rs-finding-stat">{stat}</div>'
+        f'<div class="rs-finding-title">{title}</div>'
+        f'<div class="rs-finding-body">{body}</div></div>'
+        for stat, title, body in items
+    )
+    st.markdown(f'<div class="rs-finding-grid">{cells}</div>', unsafe_allow_html=True)
+
+
+def headline_stat(value: str, qualifier: str) -> None:
+    """A large serif number with its interpretive qualifier immediately
+    beneath it -- used where a figure could otherwise read as an
+    unqualified, triumphant KPI (observed retention, most notably)."""
+    st.markdown(
+        f'<div class="rs-headline"><div class="rs-headline-value">{value}</div>'
+        f'<div class="rs-headline-qualifier">{qualifier}</div></div>',
+        unsafe_allow_html=True,
+    )
+
+
+def compare_two(
+    proxy_value: str, proxy_note: str, degenerate_value: str, degenerate_note: str
+) -> None:
+    """Side-by-side comparison used on Conversion & Retention to keep the
+    subscription-level proxy and the account-level figure from ever being
+    read as two versions of the same KPI."""
+    st.markdown(
+        f'''
+        <div class="rs-compare-grid">
+          <div class="rs-compare-cell is-proxy">
+            <div class="rs-compare-eyebrow">Subscription-level proxy</div>
+            <div class="rs-compare-value">{proxy_value}</div>
+            <div class="rs-compare-note">{proxy_note}</div>
+          </div>
+          <div class="rs-compare-cell is-degenerate">
+            <div class="rs-compare-eyebrow">Account-level result</div>
+            <div class="rs-compare-value">{degenerate_value}</div>
+            <div class="rs-compare-note">{degenerate_note}</div>
+          </div>
+        </div>
+        ''',
+        unsafe_allow_html=True,
+    )
+
+
 def apply_layout(fig: go.Figure, height: int = 380, show_legend: bool = False) -> go.Figure:
     """Shared Plotly styling. Legends are off by default: most charts here
     have a single series and a legend would only repeat the title. The two
@@ -764,6 +979,12 @@ def page_overview(data: dict) -> None:
         "events. This page explains what is in the dataset and what to know before "
         "reading the numbers on the pages that follow."
     )
+
+    pullquote(
+        "These numbers are correct, but some do not mean what they would mean in a "
+        "clean SaaS dataset."
+    )
+
     st.write(
         "This dashboard exists to answer one question honestly: for each metric a SaaS "
         "business normally tracks, what does this specific, synthetic dataset actually "
@@ -819,20 +1040,52 @@ def page_overview(data: dict) -> None:
         "time. Those textbook definitions are the ones most business dashboards use. This dashboard "
         "computes the same-named metrics against RavenStack's data, but several of them turn out to "
         "measure something subtly different once you look at how the underlying tables are actually "
-        "shaped, see the caveat directly below and the full <strong>Glossary</strong> page for "
-        "specifics.",
+        "shaped. See the section below, and the full <strong>Glossary</strong> page, for specifics.",
+    )
+
+    divider()
+    st.markdown("### The dataset is unusual")
+    st.write(
+        "RavenStack was built with structural properties that a production analytics stack "
+        "would normally flag before anyone built a dashboard on top of it. They were kept "
+        "deliberately, because working around imperfect data honestly is the point of this "
+        "project. Three of them matter more than the rest:"
+    )
+
+    finding_grid(
+        [
+            (
+                "5–14 per account",
+                "Subscriptions overlap",
+                "Accounts routinely hold multiple simultaneously open subscription records. "
+                "There is no single \u201ccurrent plan\u201d to point to, which is why revenue is "
+                "reported at the subscription-record level rather than per customer.",
+            ),
+            (
+                "~90% no end date",
+                "Subscriptions rarely close",
+                "Most subscription records never receive an end date. An account with any open "
+                "record keeps counting as \u201cactive\u201d indefinitely, which is most of the "
+                "reason the retention curve rises instead of decaying.",
+            ),
+            (
+                "600 events, 352 accounts",
+                "Churn is an event log, not a flag",
+                "The accounts table's own churn_flag disagrees with the churn events log, so "
+                "this project treats raw_churn_events as the only source of truth, and reports "
+                "events and unique accounts as two separate numbers, never one.",
+            ),
+        ]
     )
 
     caveat(
         "Interpretation notes: please read before the rest of this dashboard",
         "RavenStack is a <strong>synthetic</strong> dataset built for portfolio purposes, not a real "
-        "company's data. Several of its structural properties change how the headline metrics should "
-        "be read: accounts routinely hold between 5 and 14 concurrently open subscription records, "
-        "about 90% of subscription records never receive an end date, and roughly 70% of accounts "
-        "have at least one churn event on file. These properties are documented in full on the "
-        "<strong>Data Quality</strong> page. None of the figures on this dashboard have been adjusted "
-        "to compensate for them. They are shown exactly as computed, with the caveat that explains them "
-        "placed right next to the number.",
+        "company's data. The three properties above, and others documented in full on the "
+        "<strong>Data Quality</strong> page, change how the headline metrics on this dashboard should "
+        "be read. None of the figures shown here have been adjusted to compensate for them. They are "
+        "shown exactly as computed, with the caveat that explains them placed right next to the "
+        "number.",
     )
 
     divider()
@@ -867,10 +1120,33 @@ def page_overview(data: dict) -> None:
         "number by itself. Where a figure could be mistaken for a standard business KPI, such as "
         "\"MRR\" or \"retention,\" this dashboard uses the project's exact terminology, for example "
         "\"Aggregate Subscription-Record MRR,\" and puts the relevant caveat directly beside the "
-        "chart rather than in a footnote you might skip. If you only have time for one other page, "
-        "make it Data Quality: it explains the structural quirks that shape almost everything else "
-        "here."
+        "chart rather than in a footnote you might skip."
     )
+
+    divider()
+    st.markdown("### Continue the investigation")
+    mrr_millions = (
+        f"${latest_mrr_row['aggregate_subscription_mrr'] / 1_000_000:.1f}M"
+        if latest_mrr_row is not None
+        else "the MRR figure"
+    )
+    st.write(
+        "If you only have time for one other page, make it Data Quality: it explains the "
+        "structural quirks that shape almost everything else here. The two pages below are "
+        "where those quirks matter most."
+    )
+    with st.container(key="route_nav"):
+        route_cols = st.columns(3)
+        routes = [
+            ("03", "Revenue", f"Why {mrr_millions} is not company MRR."),
+            ("04", "Conversion & Retention", "Why 98.9% retention isn't what it looks like."),
+            ("07", "Data Quality", "The 16 checks behind almost every number here."),
+        ]
+        for col, (num, label, desc) in zip(route_cols, routes):
+            with col:
+                if st.button(f"`{num}`  {label} — {desc}", key=f"route_{label}", width="stretch"):
+                    st.session_state.rs_page = label
+                    st.rerun()
 
 
 # ===========================================================================
@@ -1158,6 +1434,8 @@ def page_conversion_retention(data: dict) -> None:
     conv_acct = data["conversion_account"]
     if conv is not None:
         row = conv.iloc[0]
+        acct_row = conv_acct.iloc[0] if conv_acct is not None else None
+
         metric_row(
             [
                 (f"{row['subscription_level_conversion_rate_pct']:.1f}%", f"Subscription-level proxy {term('trial conversion', 'conversion rate')}"),
@@ -1165,6 +1443,23 @@ def page_conversion_retention(data: dict) -> None:
                 (f"{int(row['trial_records_with_later_paid_record']):,}", "Records with a later paid record on the same account"),
             ]
         )
+
+        if acct_row is not None:
+            compare_two(
+                proxy_value=f"{row['subscription_level_conversion_rate_pct']:.1f}%",
+                proxy_note=(
+                    "Trial subscription records followed by a paid record on the same account. "
+                    "Still just a proxy, but it is the number reported as this project's "
+                    "conversion metric."
+                ),
+                degenerate_value=f"{acct_row['account_level_conversion_rate_pct']:.1f}%",
+                degenerate_note=(
+                    "Almost any account that ever held a trial also shows a paid record "
+                    "somewhere in its history, regardless of order or causation. Not usable "
+                    "as a KPI \u2014 shown here so the degeneracy is visible, not hidden."
+                ),
+            )
+
         caveat(
             "This is a proxy, not a certified causal funnel",
             "A trial subscription record counts as \"converted\" if the same account holds at least "
@@ -1173,20 +1468,17 @@ def page_conversion_retention(data: dict) -> None:
             "record can coexist without one having actually caused the other. For example, a trial "
             "for a new seat might open while an existing paid plan is already active on the same "
             "account. That is why this is reported as a <strong>subscription-level proxy</strong>, "
-            "and why the account-level figure below is not treated as the headline conversion metric.",
+            "and why the account-level figure above is shown only as a contrast, never as the "
+            "headline conversion metric.",
         )
 
-        if conv_acct is not None:
-            acct_row = conv_acct.iloc[0]
-            st.markdown("#### Account-level conversion, shown for completeness rather than as a KPI")
+        if acct_row is not None:
             st.write(
                 f"Of {int(acct_row['accounts_with_any_trial'])} accounts that ever held a trial "
                 f"subscription record, {int(acct_row['accounts_with_trial_and_paid'])} also held a "
-                f"paid record at some point: a **{acct_row['account_level_conversion_rate_pct']:.1f}%** "
-                "rate. This number is structurally close to meaningless as a KPI, because accounts "
-                "can hold many subscription records over time regardless of order. Almost any "
-                "account that ever had a trial will eventually also show a paid record somewhere in "
-                "its history, so it is not presented as a real business conversion rate."
+                "paid record at some point. With enough subscription history accumulated per "
+                "account, nearly every account clears this bar \u2014 which is exactly why it isn't "
+                "reported as a real business conversion rate."
             )
 
         conv_tier = data["conversion_by_tier"]
@@ -1217,18 +1509,20 @@ def page_conversion_retention(data: dict) -> None:
     st.markdown("### Observed account subscription retention")
     st.write(
         "This is the single most important chart to read carefully on this dashboard. The number "
-        "looks impressive on its own, and that is exactly why the explanation below it matters."
+        "looks impressive on its own, and that is exactly why the explanation directly beneath it "
+        "matters."
     )
     retention = data["retention_curve"]
     if retention is not None:
         m0 = retention.loc[retention["months_since_signup"] == 0, "retention_rate_pct_eligible_cohorts_only"].iloc[0]
         m6 = retention.loc[retention["months_since_signup"] == 6, "retention_rate_pct_eligible_cohorts_only"].iloc[0]
-        metric_row(
-            [
-                (f"{m0:.1f}%", f"Observed {term('retention rate', 'retention')} at month 0"),
-                (f"{m6:.1f}%", f"Observed {term('retention rate', 'retention')} at month 6"),
-            ]
+
+        headline_stat(
+            f"{m6:.1f}%",
+            "Observed account-subscription retention at month 6 \u2014 under this project's "
+            "open-subscription definition. Not a claim about customer loyalty; see the caveat below.",
         )
+        caption(f"For reference, the same measure reads {m0:.1f}% at month 0, immediately after signup.")
 
         fig = go.Figure()
         fig.add_trace(
